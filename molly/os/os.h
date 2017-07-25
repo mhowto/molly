@@ -8,6 +8,7 @@
 namespace molly {
 namespace os {
 enum file_mode {
+  ModeNothing = 0,
   ModeDir = 1 << (32 - 1 - 0),       // d: is a directory
   ModeAppend = 1 << (32 - 1 - 1),    // a: append-only
   ModeExclusive = 1 << (32 - 1 - 2), // l: exclusive use
@@ -40,11 +41,8 @@ std::string getenv(std::string key);
 
 std::string temp_dir();
 
-void open_file(std::string name, int flag, file_mode perm,
-               /* out */ std::ifstream &stream);
-
 struct file_info stat(std::string name);
-
-}}
+}
+}
 
 #endif
