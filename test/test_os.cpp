@@ -1,6 +1,9 @@
+#include "molly/os/error.h"
+#include "molly/os/file.h"
 #include "molly/os/os.h"
 #include <gtest/gtest.h>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 namespace os = molly::os;
@@ -16,7 +19,19 @@ struct sys_dir sysdir = {
 };
 
 std::int64_t size(std::string name) {
-  // os::open
+  os::File file(name);
+  int readOnceBytes = 100;
+  std::string buf;
+  buf.resize(100);
+  std::int64_t len = 0;
+  for (;;) {
+    int n = file.read(buf, readOnceBytes);
+    if (n == 0) {
+      break;
+    }
+    len += n;
+  }
+  return len;
 }
 
 TEST(OSTest, StatFunc) {
@@ -27,5 +42,10 @@ TEST(OSTest, StatFunc) {
   os::file_info file_info = os::stat(path);
   ASSERT_EQ(file_info.name, sfname);
 
-//   std::int64_t s = size(path);
+  try {
+    std::int64_t file_size = size(path);
+    ASSERT_EQ(file_info.size, file_size);
+  } catch (os::IOReadException &e) {
+    FAIL() << e.what();
+  }
 }
