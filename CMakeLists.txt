@@ -13,7 +13,9 @@ else()
 endif()
 
 add_subdirectory(molly)
-add_subdirectory(thirdparty/googletest-release-1.8.0/googletest)
+if (NOT TARGET gtest)
+    add_subdirectory(thirdparty/googletest-release-1.8.0/googletest)
+endif()
 
 enable_testing()
 add_subdirectory(test)
