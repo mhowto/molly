@@ -25,7 +25,7 @@ File *open_file(std::string name, int flag, file_mode perm) {
 }
 */
 
-std::uint32_t mode(file_mode i) {
+std::uint32_t mode(int i) {
   std::uint32_t o = 0;
   o |= i;
   if (i & ModeSetuid) {
@@ -40,13 +40,26 @@ std::uint32_t mode(file_mode i) {
   return o;
 }
 
-File::File(std::string name, int flag, file_mode perm) {
-  fd_ = ::open(name.c_str(), flag | O_CLOEXEC, mode(perm));
+File::File() noexcept : fd_(-1), ownsFd_(false) {}
+
+File::File(int fd, const std::string &name, bool ownsFd) noexcept
+    : fd_(fd), ownsFd_(ownsFd), name_(name) {
+  if (fd < -1) {
+    std::cerr << "fd must be -1 or non-negative" << std::endl;
+  }
+
+  if (fd == -1 && ownsFd) {
+    std::cerr << "cannot own -1" << std::endl;
+  }
+}
+
+File::File(std::string name, int flag, int mode_) {
+  fd_ = ::open(name.c_str(), flag | O_CLOEXEC, mode(mode_));
   name_ = name;
   if (fd_ < 0) {
     char err_info[255];
-    sprintf(err_info, "open file failed: %s\n", std::strerror(errno));
-    throw std::runtime_error(err_info);
+    sprintf(err_info, "open %s failed", name.c_str());
+    throw std::system_error(errno, std::system_category(), err_info);
   }
 }
 
@@ -57,6 +70,25 @@ File::~File() {
                                         "Another time, this might close the "
                                         "wrong FD.";
   }
+}
+
+void File::close() {
+  if (!closeNoThrow()) {
+    throw std::system_error(errno, std::system_category(), "close() failed");
+  }
+}
+
+File File::dup() const {
+  if (fd_ != -1) {
+    int fd = ::dup(fd_);
+    if (fd == -1) {
+      throw std::system_error(errno, std::system_category(), "dup() failed");
+    }
+
+    return File(fd, name_, true);
+  }
+
+  return File();
 }
 
 bool File::closeNoThrow() {

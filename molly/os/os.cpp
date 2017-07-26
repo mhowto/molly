@@ -48,6 +48,19 @@ std::string os::getenv(std::string key) {
   return env;
 }
 
+void os::remove(const std::string &name) {
+  int r = ::unlink(name.c_str());
+  if (r == 0) {
+    return;
+  }
+  r = ::rmdir(name.c_str());
+  if (r == -1) {
+    std::string err_info = std::string("remove file ") + name +
+                           " failed: unlink() or rmdir() returned -1";
+    throw std::system_error(errno, std::system_category(), err_info);
+  }
+}
+
 struct os::file_info os::stat(std::string name) {
   struct stat stat_buf;
   int r = ::stat(name.c_str(), &stat_buf);

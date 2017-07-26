@@ -41,6 +41,9 @@ std::string getenv(std::string key);
 
 std::string temp_dir();
 
+// removes the named file or directory.
+void remove(const std::string &name);
+
 struct file_info stat(std::string name);
 }
 }

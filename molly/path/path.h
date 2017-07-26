@@ -3,7 +3,6 @@
 
 namespace molly {
 namespace path {
-namespace filepath {}
 }
 }
 

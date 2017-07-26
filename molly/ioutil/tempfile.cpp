@@ -1,11 +1,9 @@
-#include "ioutil.h"
-#include "os/os.h"
-#include <experimental/filesystem>
-#include <limits>
+#include "tempfile.h"
+#include "molly/path/filepath/filepath.h"
 #include <random>
 
-namespace fs = std::experimental::filesystem;
 namespace os = molly::os;
+namespace filepath = molly::path::filepath;
 
 std::string next_suffix() {
   std::random_device rd;
@@ -16,24 +14,32 @@ std::string next_suffix() {
   return std::to_string(r);
 }
 
+namespace molly {
 namespace ioutil {
 
-std::string temp_file(std::string dir, std::string prefix) {
+os::File temp_file(std::string dir, std::string prefix) {
   if (dir == "") {
     dir = os::temp_dir();
   }
 
-  fs::path _dir(dir);
-
   int nconflict = 0;
   for (int i = 0; i < 10000; i++) {
-    fs::path new_temp_dir = _dir / (prefix + next_suffix());
-    /*
-    os.File file =
-        os.open_file(path.string(), os.O_RDWR | os.O_CREATE | os.O_EXCL, 0600);
-        */
+    std::string name = filepath::join(dir, prefix + next_suffix());
+    try {
+      os::File file(name, O_RDWR | O_CREAT | O_EXCL, 0600);
+      return file.dup();
+    } catch (std::system_error &e) {
+      if (e.code().value() == EEXIST) {
+        nconflict++;
+        continue;
+      } else {
+        throw e;
+      }
+    }
   }
 }
 
 std::string temp_dir(std::string dir, std::string prefix) {}
+
+}
 }

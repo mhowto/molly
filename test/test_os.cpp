@@ -1,4 +1,4 @@
-#include "molly/os/error.h"
+#include "molly/os/exception.h"
 #include "molly/os/file.h"
 #include "molly/os/os.h"
 #include <gtest/gtest.h>

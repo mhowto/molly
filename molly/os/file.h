@@ -1,7 +1,7 @@
 #ifndef __FILE_H
 #define __FILE_H
 
-#include "error.h"
+#include "exception.h"
 #include "os.h"
 #include <fcntl.h>
 #include <string>
@@ -11,13 +11,24 @@ namespace molly {
 namespace os {
 class File {
 public:
+  // Creates an empty File object, for late initialization.
+  File() noexcept;
+
   // Open and create a file object. Throws on error.
-  File(std::string name, int flag = O_RDONLY, file_mode perm = ModeNothing);
-  File(int fd, std::string name) : fd_(fd), name_(name) {}
+  File(std::string name, int flag = O_RDONLY, int mode_ = 0666);
+  File(int fd, const std::string &name, bool ownsFd = false) noexcept;
 
   ~File();
 
   int fd() const { return fd_; }
+  std::string name() const { return name_; }
+
+  // dupcate file descriptor and return File that owns it.
+  File dup() const;
+
+  // If we own the file descriptor, close the file and throw on error.
+  // Otherwise, do nothing.
+  void close();
 
   // Movable
   //   File(File &&) noexcept;
@@ -34,6 +45,7 @@ private:
   int release() noexcept;
 
   int fd_;
+  bool ownsFd_;
   std::string name_;
   std::int64_t readbyteOffset;
 };
