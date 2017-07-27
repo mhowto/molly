@@ -11,6 +11,7 @@ include_directories(${MAINFOLDER})
 
 aux_source_directory(. DIR_LIB_SRCS)
 add_executable(test_molly_all ${DIR_LIB_SRCS} ${GTEST_ROOT}/src/gtest_main.cc)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     target_link_libraries(test_molly_all molly gtest gtest_main c++experimental)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
