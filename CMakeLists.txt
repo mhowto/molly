@@ -19,7 +19,7 @@ set(MAINFOLDER ${PROJECT_SOURCE_DIR})
 add_subdirectory(molly)
 
 if (NOT TARGET gtest)
-    add_subdirectory(thirdparty/googletest-release-1.8.0/googletest)
+    add_subdirectory(thirdparty/googletest/googletest)
 endif()
 
 if(BUILD_MOLLY_TEST)

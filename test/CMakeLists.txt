@@ -1,4 +1,4 @@
-set(GTEST_ROOT ${MAINFOLDER}/thirdparty/googletest-release-1.8.0/googletest)
+set(GTEST_ROOT ${MAINFOLDER}/thirdparty/googletest/googletest)
 
 set(GTEST_INCLUDE_DIR ${GTEST_ROOT}/include)
 
