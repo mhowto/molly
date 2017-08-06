@@ -26,6 +26,8 @@ public:
   // dupcate file descriptor and return File that owns it.
   File dup() const;
 
+  file_info stat();
+
   // If we own the file descriptor, close the file and throw on error.
   // Otherwise, do nothing.
   void close();
@@ -37,8 +39,10 @@ public:
   // read no more than num_bytes into container *out. The container is assumed
   // to be contiguous, with element size equal to 1, and offer size(),
   // reserve(), and random access (e.g. std::vector<char>, std::string).
-  template <class Container>
-  std::int64_t read(Container &out, std::size_t num_bytes);
+  template <class Container> std::int64_t read(Container &out, std::size_t num_bytes);
+
+  template <class Container> std::int64_t read_at(Container &buf, std::ptrdiff_t offset);
+  template <class Container> std::int64_t write_at(Container &buf, std::ptrdiff_t offset);
 
 private:
   bool closeNoThrow();
@@ -50,14 +54,32 @@ private:
   std::int64_t readbyteOffset;
 };
 
-template <class Container>
-std::int64_t File::read(Container &buf, std::size_t num_bytes) {
+template <class Container> std::int64_t File::read(Container &buf, std::size_t num_bytes) {
   int num_to_read = (num_bytes < buf.capacity()) ? num_bytes : buf.capacity();
   ssize_t n = ::read(fd_, &buf[0], num_to_read);
   if (n < 0) {
     throw IOReadException(name_, errno);
   }
   readbyteOffset += n;
+  return n;
+}
+
+template <class Container> std::int64_t File::read_at(Container &buf, std::ptrdiff_t offset) {
+  readbyteOffset = offset;
+  int n = 0;
+  int remaining = buf.capacity();
+  while (remaining > 0) {
+    int m = ::pread(fd_, &buf[n], remaining, offset);
+    if (m == -1) {
+      throw std::system_error(errno, std::system_category(), "pread failed");
+    } else if (m == 0) {
+      break;
+    }
+    n += m;
+    remaining = buf.capacity() - n;
+    offset += m;
+    readbyteOffset = offset;
+  }
   return n;
 }
 
@@ -69,6 +91,7 @@ File *open_file(std::string name, int flag, file_mode perm);
 
 File *open(std::string name);
 */
+std::uint32_t mode(int i);
 }
 }
 

@@ -55,21 +55,12 @@ void os::remove(const std::string &name) {
   }
   r = ::rmdir(name.c_str());
   if (r == -1) {
-    std::string err_info = std::string("remove file ") + name +
-                           " failed: unlink() or rmdir() returned -1";
+    std::string err_info = std::string("remove file ") + name + " failed: unlink() or rmdir() returned -1";
     throw std::system_error(errno, std::system_category(), err_info);
   }
 }
 
-struct os::file_info os::stat(std::string name) {
-  struct stat stat_buf;
-  int r = ::stat(name.c_str(), &stat_buf);
-  if (r != 0) {
-    char err_info[255];
-    sprintf(err_info, "stat failed: %s", std::strerror(errno));
-    throw std::runtime_error(err_info);
-  }
-  struct file_info fs;
+void os::fill_file_stat_from_sys(std::string name, const posix_stat_ &stat_buf, struct file_info &fs) {
   fs.name = basename(name);
   fs.size = stat_buf.st_size;
   fs.mod_time = std::chrono::system_clock::from_time_t(stat_buf.st_mtime);
@@ -107,6 +98,16 @@ struct os::file_info os::stat(std::string name) {
   if (stat_buf.st_mode & S_ISVTX) {
     fs.mode = static_cast<file_mode>(fs.mode | ModeSticky);
   }
+}
+
+struct os::file_info os::stat(std::string name) {
+  posix_stat_ stat_buf;
+  int r = ::stat(name.c_str(), &stat_buf);
+  if (r != 0) {
+    throw std::system_error(errno, std::system_category(), "stat failed");
+  }
+  struct file_info fs;
+  fill_file_stat_from_sys(name, stat_buf, fs);
 
   return fs;
 }

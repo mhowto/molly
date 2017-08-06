@@ -1,10 +1,12 @@
 #include "file.h"
 #include <cstring>
 #include <iostream>
+#include <sys/types.h>
+#include <unistd.h>
 
+typedef struct stat stat_;
 namespace molly {
 namespace os {
-
 /*
 File *open(std::string name) { return open_file(name, O_RDONLY, ModeNothing); }
 
@@ -42,8 +44,7 @@ std::uint32_t mode(int i) {
 
 File::File() noexcept : fd_(-1), ownsFd_(false) {}
 
-File::File(int fd, const std::string &name, bool ownsFd) noexcept
-    : fd_(fd), ownsFd_(ownsFd), name_(name) {
+File::File(int fd, const std::string &name, bool ownsFd) noexcept : fd_(fd), ownsFd_(ownsFd), name_(name) {
   if (fd < -1) {
     std::cerr << "fd must be -1 or non-negative" << std::endl;
   }
@@ -102,6 +103,18 @@ int File::release() noexcept {
   fd_ = -1;
   // ownsFd_ = false;
   return released;
+}
+
+file_info File::stat() {
+  stat_ stat_ref;
+  int r = ::fstat(this->fd_, &stat_ref);
+  if (r != 0) {
+    throw std::system_error(errno, std::system_category(), "fstat failed");
+  }
+
+  struct file_info fs;
+  fill_file_stat_from_sys(this->name_, stat_ref, fs);
+  return fs;
 }
 }
 }
