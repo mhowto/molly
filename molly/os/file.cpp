@@ -42,7 +42,7 @@ std::uint32_t mode(int i) {
   return o;
 }
 
-File::File() noexcept : fd_(-1), ownsFd_(false) {}
+File::File() noexcept : fd_(-1), ownsFd_(false), readbyteOffset(0), writebyteOffset(0) {}
 
 File::File(int fd, const std::string &name, bool ownsFd) noexcept : fd_(fd), ownsFd_(ownsFd), name_(name) {
   if (fd < -1) {

@@ -40,8 +40,9 @@ public:
   // to be contiguous, with element size equal to 1, and offer size(),
   // reserve(), and random access (e.g. std::vector<char>, std::string).
   template <class Container> std::int64_t read(Container &out, std::size_t num_bytes);
-
   template <class Container> std::int64_t read_at(Container &buf, std::ptrdiff_t offset);
+
+  template <class Container> std::int64_t write(Container &out);
   template <class Container> std::int64_t write_at(Container &buf, std::ptrdiff_t offset);
 
 private:
@@ -52,6 +53,7 @@ private:
   bool ownsFd_;
   std::string name_;
   std::int64_t readbyteOffset;
+  std::int64_t writebyteOffset;
 };
 
 template <class Container> std::int64_t File::read(Container &buf, std::size_t num_bytes) {
@@ -78,11 +80,38 @@ template <class Container> std::int64_t File::read_at(Container &buf, std::ptrdi
     n += m;
     remaining = buf.capacity() - n;
     offset += m;
-    readbyteOffset = offset;
   }
+  readbyteOffset = offset;
   return n;
 }
 
+template <class Container> std::int64_t File::write(Container &buf) {
+  ssize_t n = ::write(fd_, &buf[0], buf.capacity());
+  if (n == -1) {
+    throw std::system_error(errno, std::system_category(), "write failed");
+  }
+  writebyteOffset += n;
+  return n;
+}
+
+template <class Container> std::int64_t File::write_at(Container &buf, std::ptrdiff_t offset) {
+  int n = 0;
+  writebyteOffset = offset;
+  int remaining = buf.size();
+  while (remaining > 0) {
+    int m = ::pwrite(fd_, &buf[n], remaining, offset);
+    if (m == -1) {
+      throw std::system_error(errno, std::system_category(), "pwrite failed");
+    } else if (m == 0) {
+      break;
+    }
+    n += m;
+    remaining = buf.size() - n;
+    offset += m;
+  }
+  writebyteOffset = offset;
+  return n;
+}
 /*
 // open_file is the generalized open call; most users will use Open or Create
 // instead. It opens the named file with specified flag and perm, if applicable.
