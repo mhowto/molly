@@ -37,9 +37,9 @@ os::File temp_file(std::string dir, std::string prefix) {
       }
     }
   }
+  throw std::system_error();
 }
 
-std::string temp_dir(std::string dir, std::string prefix) {}
-
+std::string temp_dir(std::string dir, std::string prefix) { return "unimplemented"; }
 }
 }
