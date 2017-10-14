@@ -37,7 +37,7 @@ os::File temp_file(std::string dir, std::string prefix) {
       }
     }
   }
-  throw std::system_error();
+  throw std::runtime_error("you shall not enter here");
 }
 
 std::string temp_dir(std::string dir, std::string prefix) { return "unimplemented"; }
