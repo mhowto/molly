@@ -11,7 +11,7 @@ typedef struct stat posix_stat_;
 namespace molly {
 namespace os {
 enum file_mode {
-  ModeNothing = 0,
+  ModeDefault = 0,
   ModeDir = 1 << (32 - 1 - 0),         // d: is a directory
   ModeAppend = 1 << (32 - 1 - 1),      // a: append-only
   ModeExclusive = 1 << (32 - 1 - 2),   // l: exclusive use

@@ -9,6 +9,17 @@
 
 namespace molly {
 namespace os {
+  enum open_file_flag {
+    OPEN_RDONLY = O_RDONLY,  // open the file read-only
+    OPEN_WRONLY = O_WRONLY,  // open the file write-only
+    OPEN_RDWR = O_RDWR,      // open the file read-write
+    OPEN_APPEND = O_APPEND,  // append data to the file when writing
+    OPEN_CREATE = O_CREAT,   // create a new file if none exists
+    OPEN_EXCL = O_EXCL,      // used with O_CREATE, file must not exist
+    OPEN_SYNC = O_SYNC,      // open for synchronous I/O
+    OPEN_TRUNC = O_TRUNC,    // if possible, truncate file when opened
+  };
+
 class File {
 public:
   // Creates an empty File object, for late initialization.
@@ -112,12 +123,13 @@ template <class Container> std::int64_t File::write_at(Container &buf, std::ptrd
   writebyteOffset = offset;
   return n;
 }
-/*
+
 // open_file is the generalized open call; most users will use Open or Create
 // instead. It opens the named file with specified flag and perm, if applicable.
 // If successful, methods on the returned File can be used for I/O.
 File *open_file(std::string name, int flag, file_mode perm);
 
+/*
 File *open(std::string name);
 */
 std::uint32_t mode(int i);

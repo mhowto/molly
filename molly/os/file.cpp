@@ -9,6 +9,7 @@ namespace molly {
 namespace os {
 /*
 File *open(std::string name) { return open_file(name, O_RDONLY, ModeNothing); }
+*/
 
 File *open_file(std::string name, int flag, file_mode perm) {
   if (name == "") {
@@ -17,15 +18,13 @@ File *open_file(std::string name, int flag, file_mode perm) {
 
   int fd = ::open(name.c_str(), flag | O_CLOEXEC, mode(perm));
   if (fd < 0) {
-    char err_info[255];
-    sprintf(err_info, "open file failed: %s\n", std::strerror(errno));
-    throw std::runtime_error(err_info);
+    throw PathException("open", name, errno);
   }
   // TODO: open_dir
+  // open(2) iteself won't handle the sticky bit on *BSD and Solaris
 
   return new File(fd, name);
 }
-*/
 
 std::uint32_t mode(int i) {
   std::uint32_t o = 0;
@@ -116,5 +115,6 @@ file_info File::stat() {
   fill_file_stat_from_sys(this->name_, stat_ref, fs);
   return fs;
 }
+
 }
 }
